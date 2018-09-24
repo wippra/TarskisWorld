@@ -67,8 +67,8 @@ void print_world(uint32_t w[], int sizeof_w)
 int check_world(uint32_t w[], int sizeof_w)
 {
 	//print_world(w,sizeof_w);
-	int valid_objects_length = sizeof_w;
-	int indices[valid_objects_length];
+	//int valid_objects_length = sizeof_w; // Unless I'm mistaken, valid_objects or sizeof_w is never changed in this function - Owen
+	int indices[sizeof_w];
 	int combo_length = 2;
 	int y = 0;
 
@@ -93,7 +93,7 @@ int check_world(uint32_t w[], int sizeof_w)
 
 		for(y = combo_length-1; y >= 0; y--)
 		{
-			if(indices[y] != y + valid_objects_length - combo_length)
+			if(indices[y] != y + sizeof_w - combo_length)
 			{
 				successful_loop = false;
 				break;
@@ -270,23 +270,27 @@ int main()
 {
 	//test_cases();
 
-	int s, m, l, t, c, d, i, j; 
+	int s, m, l, t, c, d, i, j;
+	int size;
 	
 	// Generation of valid objects
 	uint32_t valid_objects[36864];
 
-	i = 0;
+	//i = 0;
 	j = 0;
 
 	for(i = 0; i <= 262143; i++)
 	{
-		s = (i & (1 << 17)) >> 17;
-		m = (i & (1 << 16)) >> 16;
-		l = (i & (1 << 15)) >> 15;
-		
-		t = (i & (1 << 14)) >> 14;
-		c = (i & (1 << 13)) >> 13;
-		d = (i & (1 << 12)) >> 12;
+	    
+	    // Small, medium, or large   
+	    s = (i >> 17) & 1;
+	    m = (i >> 16) & 1;
+	    l = (i >> 15) & 1;
+
+	    // I don't know what t,c, and d are - Owen
+	    t = (i >> 14) & 1;
+	    c = (i >> 13) & 1;
+	    d = (i >> 12) & 1;
 		
 		if(!((s ^ m) ^ l) ^ (s & m & l))
 			continue;
