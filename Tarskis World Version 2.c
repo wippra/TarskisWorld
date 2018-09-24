@@ -8,9 +8,22 @@
 
 // Tarski's World
 
-bool letter_check(uint32_t* c_)
+// Requires: w is non-null, sizeof_w == length of w
+// Modifies: none
+// Returns: true if no labels are repeated, else false
+bool letter_check(uint32_t sizeof_w, uint32_t* w)
 {
-	return(!((c_[0] & 63) & (c_[1] & 63)));
+    // All the labels in use
+    uint8_t labels = 0;
+    uint8_t label; // The current labels on the object
+
+    for(uint32_t i = 0; i < sizeof_w; i++)
+    {
+	label = w[i] & 63;
+	if(labels & label) return false;
+	labels = labels | label; 
+    }
+    return true;
 }
 
 bool location_check(uint32_t l_[])
@@ -67,8 +80,11 @@ int check_world(uint32_t w[], int sizeof_w)
 
 	for(y = 0; y < combo_length; y++)
 		temp_pair[y] = w[indices[y]];
+
+	if(!letter_check(sizeof_w, w))
+	    return 0;
 	
-	if(!(location_check(temp_pair) && letter_check(temp_pair)))
+	if(!(location_check(temp_pair)))
 		return 0;
 	
 	while(true)
@@ -97,7 +113,7 @@ int check_world(uint32_t w[], int sizeof_w)
 		for(y = 0; y < combo_length; y++)
 			temp_pair_2[y] = w[indices[y]];
 
-		if(!(location_check(temp_pair_2) && letter_check(temp_pair_2)))
+		if(!(location_check(temp_pair_2)))
 			return 0;
 	}
 
@@ -113,50 +129,50 @@ void test_cases()
 	// 0 & 0 should pass
 	idk[0] = 0;
 	idk[1] = 0;
-	assert(letter_check(idk));
-	printf("%d\n",letter_check(idk));
+	assert(letter_check(2, idk));
+	printf("%d\n",letter_check(2, idk));
 	
 	// 1 & 1 should fail
 	idk[0] = 1;
 	idk[1] = 1;
-	assert(!(letter_check(idk)));
-	printf("%d\n",letter_check(idk));
+	assert(!(letter_check(2, idk)));
+	printf("%d\n",letter_check(2, idk));
 	
 	// 2 & 3 should fail
 	idk[0] = 2;
 	idk[1] = 3;
-	assert(!(letter_check(idk)));
-	printf("%d\n",letter_check(idk));
+	assert(!(letter_check(2, idk)));
+	printf("%d\n",letter_check(2, idk));
 	
 	// 4 & 5 should fail
 	idk[0] = 4;
 	idk[1] = 5;
-	assert(!(letter_check(idk)));
-	printf("%d\n",letter_check(idk));
+	assert(!(letter_check(2, idk)));
+	printf("%d\n",letter_check(2, idk));
 	
 	// 3 & 4 should pass
 	idk[0] = 3;
 	idk[1] = 4;
-	assert(letter_check(idk));
-	printf("%d\n",letter_check(idk));
+	assert(letter_check(2, idk));
+	printf("%d\n",letter_check(2, idk));
 	
 	// 63 & 12 should fail
 	idk[0] = 63;
 	idk[1] = 12;
-	assert(!(letter_check(idk)));
-	printf("%d\n",letter_check(idk));
+	assert(!(letter_check(2, idk)));
+	printf("%d\n",letter_check(2, idk));
 	
 	// 56 & 7 should pass
 	idk[0] = 56;
 	idk[1] = 7;
-	assert(letter_check(idk));
-	printf("%d\n",letter_check(idk));
+	assert(letter_check(2, idk));
+	printf("%d\n",letter_check(2, idk));
 	
 	// 42 & 21 should pass
 	idk[0] = 42;
 	idk[1] = 21;
-	assert(letter_check(idk));
-	printf("%d\n",letter_check(idk));
+	assert(letter_check(2, idk));
+	printf("%d\n",letter_check(2, idk));
 
 	printf("\n ================ \n\n");
 	
