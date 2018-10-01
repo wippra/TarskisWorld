@@ -13,17 +13,17 @@
 // Returns: true if no labels are repeated, else false
 bool letter_check(uint32_t sizeof_w, uint32_t* w)
 {
-    // All the labels in use
-    uint8_t labels = 0;
-    uint8_t label; // The current labels on the object
-
-    for(uint32_t i = 0; i < sizeof_w; i++)
-    {
-	label = w[i] & 63;
-	if(labels & label) return false;
-	labels = labels | label; 
-    }
-    return true;
+	// All the labels in use
+	uint8_t labels = 0;
+	uint8_t label; // The current labels on the object
+	
+	for(uint32_t i = 0; i < sizeof_w; i++)
+	{
+		label = w[i] & 63;
+		if(labels & label) return false;
+		labels = labels | label; 
+	}
+	return true;
 }
 
 bool location_check(uint32_t l_[])
