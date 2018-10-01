@@ -52,6 +52,7 @@ bool location_check_v2(uint32_t sizeof_w, uint32_t* w)
 	if((world[cy] >> cx) & 3) { // If center is occupied by 1 or 2
 	    return false;
 	}
+	world[cy] = world[cy] | (1 << cx); 
 	if(large) { // Bound search
 	    uint16_t e_bit =  (2 << cx);
 	    if(cx != 14) { // Check "left" side
