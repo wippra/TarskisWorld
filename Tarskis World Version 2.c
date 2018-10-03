@@ -368,18 +368,19 @@ int main()
 	{
 		int indices[NUM_VALID_OBJECTS];
 		int y = 0;
-		
-		for(int a = 0; a < objects_in_world; a++)
+
+		// Indicies correspond to their respective object in the world (max size 12)
+		for(int a = 0; a < objects_in_world; a++) // Keeps track of track of which are which in the choose - i.e. first object is valid object 5
 			indices[a] = a;
 		
 		uint32_t temp_world[objects_in_world]; //size k
 		
-		for(y = 0; y < objects_in_world; y++)
+		for(y = 0; y < objects_in_world; y++) // Create a world using a combination of the world (in this case, valid objects 1,2,...n)
 			temp_world[y] = valid_objects[indices[y]];
 		
 		bool overflow_check = false;
 		final_count += check_world(temp_world, objects_in_world);
-		if(final_count == 1)
+		if(final_count == 1) // Since we keep track of all the possible worlds count, we need to check if we overflow every time we increment
 			overflow_check = true;
 		
 		if(overflow_check && final_count == 0)
@@ -391,24 +392,32 @@ int main()
 		while(true)
 		{
 			bool successful_loop = true;
-			
-			for(y = objects_in_world-1; y >= 0; y--)
+
+			// Since we start from the last object, we will increment the first element last
+			for(y = objects_in_world-1; y >= 0; y--) // Checks if we have done all combination possibilities, y being a respective object in the last world
 			{
-				if(indices[y] != y + NUM_VALID_OBJECTS - objects_in_world)
+			    // All of the objects need to correspond to the last possible combination (last_possible_index - NUM, lpi - (NUM - 1), ... lpi)
+				if(indices[y] != y + NUM_VALID_OBJECTS - objects_in_world) 
 				{
 					successful_loop = false;
 					break;
 				}
 			}
-			
+
+			// If the last world we tested was last possible configuration
 			if(successful_loop)
 				break;
-			
+
+			// This will not run on the last combination, so no need to worry about -1 index (because the last one we successfully run through all configurations)
+			// Increment the last object not in the last config spot (i.e. 1,2,3 (36864 max objects) -> 2,2,3 (we will update the other ones in the other for loop))
 			indices[y] += 1;
-			
-			for(int z = y+1; z < objects_in_world; z++)
+
+			// Increment the other obejects so they are one above the element we incremented before
+			// If we have moved on to the next element (i.e. left of the last object), this also resets the objects after it, we can increment those again
+			for(int z = y+1; z < objects_in_world; z++) 
 				indices[z] = indices[z-1] + 1;
-			
+
+			// World generation using our new combination of valid objects
 			uint32_t temp_world_2[objects_in_world];
 			
 			for(y = 0; y < objects_in_world; y++)
