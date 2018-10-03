@@ -6,6 +6,9 @@
 #include <inttypes.h>
 #include <stdint.h>
 
+#define NUM_VALID_OBJECTS 24576
+#define MAX_OBJECTS_IN_WORLD 12
+
 // Tarski's World
 
 // Requires: w is non-null, sizeof_w == length of w
@@ -26,6 +29,8 @@ bool letter_check(uint32_t sizeof_w, uint32_t* w)
 	return true;
 }
 
+// Requires: l contains 2 valid objects (18-bit numbers)
+// Returns: true if the locations of the objects do not conflict
 bool location_check(uint32_t l_[])
 {
 	int c0c = (l_[0] & 4032) >> 6;
@@ -54,25 +59,29 @@ bool location_check(uint32_t l_[])
 	return true;
 }
 
+// Requires: Requires: sizeof_w == length of w
+// Modifies: nothing
+// Effects: Prints all elements of w[] with spaces, and a new line at the end
+// Note: Only for debugging; never actually called
 void print_world(uint32_t w[], int sizeof_w)
 {
 	int ii = 0;
 	for(ii = 0; ii < sizeof_w; ii++)
-	{
 		printf("%d ",w[ii]);
-	}
 	printf("\n");
 }
 
 int check_world(uint32_t w[], int sizeof_w)
 {
-	//print_world(w,sizeof_w);
 	int valid_objects_length = sizeof_w;
 	int indices[valid_objects_length];
 	int combo_length = 2;
 	int y = 0;
 
+	// If a given world does not have 2 or more objects, it is automatically
+	//  valid, since there is nothing that can be invalid
 	if(sizeof_w < 2) return 1;
+	
 	for(int a = 0; a < combo_length; a++)
 		indices[a] = a;
 
@@ -273,30 +282,38 @@ int main()
 	int s, m, l, t, c, d, i, j; 
 	
 	// Generation of valid objects
-	uint32_t valid_objects[36864];
+	uint32_t valid_objects[NUM_VALID_OBJECTS];
 
 	i = 0;
 	j = 0;
 
+	// Goes through all potential objects (all 18 digit numbers)
 	for(i = 0; i <= 262143; i++)
 	{
+		// Isolates the relevant bit to each possible size or shape
+		//  Sizes: {Small, Medium, Large}
+		//  Shapes: {Tetrahedron, Cube, Dodecahedron}
 		s = (i & (1 << 17)) >> 17;
 		m = (i & (1 << 16)) >> 16;
 		l = (i & (1 << 15)) >> 15;
-		
 		t = (i & (1 << 14)) >> 14;
 		c = (i & (1 << 13)) >> 13;
 		d = (i & (1 << 12)) >> 12;
 		
+		if(l) continue;
+		
+		// Ensures only 1 size and shape bit is on for any given valid object
 		if(!((s ^ m) ^ l) ^ (s & m & l))
 			continue;
 		if(!((t ^ c) ^ d) ^ (t & c & d)) 
 			continue;
 		
+		// Any object that has met these requirements is valid, and can be added to the array
 		valid_objects[j] = i;
 		j++;
 	}
-	valid_objects_tests(valid_objects);
+	
+	//valid_objects_tests(valid_objects);
 
 	printf("Last index for valid_objects: %d \n", j);
 	printf("*\n");
@@ -307,11 +324,10 @@ int main()
 	uint32_t overflows = 0;
 
 	int combo_length = 0;
-	for(combo_length = 0; combo_length < 3; combo_length++)
+	for(combo_length = 0; combo_length < MAX_OBJECTS_IN_WORLD; combo_length++)
 	{
-		int valid_objects_length = 36864;
+		int valid_objects_length = NUM_VALID_OBJECTS;
 		int indices[valid_objects_length];
-		//int combo_length = 3;
 		//int final_count = 0;
 		int y = 0;
 	
@@ -328,7 +344,7 @@ int main()
 		if(final_count == 1)
 			overflow_check = true;
 		
-		if(overflow_check &&  final_count == 0)
+		if(overflow_check && final_count == 0)
 		{
 			overflow_check = false;
 			overflows += 1;
@@ -360,12 +376,13 @@ int main()
 			for(y = 0; y < combo_length; y++)
 				temp_world_2[y] = valid_objects[indices[y]];
 	
+			// Overflow Management
 			bool overflow_check_2 = false;
 			final_count += check_world(temp_world_2, combo_length);
 			if(final_count == 1)
-			overflow_check_2 = true;
+				overflow_check_2 = true;
 		
-			if(overflow_check_2 &&  final_count == 0)
+			if(overflow_check_2 && final_count == 0)
 			{
 				overflow_check_2 = false;
 				overflows += 1;
