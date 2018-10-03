@@ -154,22 +154,10 @@ void print_world(uint32_t w[], int sizeof_w)
 }
 
 int check_world(uint32_t w[], int sizeof_w)
-{
-	int indices[sizeof_w];
-	int combo_length = 2;
-	int y = 0;
-
+{	
 	// If a given world does not have 2 or more objects, it is automatically
 	//  valid, since there is nothing that can be invalid
 	if(sizeof_w < 2) return 1;
-	
-	for(int a = 0; a < combo_length; a++)
-	indices[a] = a;
-
-	uint32_t temp_pair[combo_length]; //size k
-
-	for(y = 0; y < combo_length; y++)
-		temp_pair[y] = w[indices[y]];
 
 	if(!letter_check(sizeof_w, w))
 		return 0;
@@ -375,24 +363,22 @@ int main()
 	uint32_t final_count = 0;
 	uint32_t overflows = 0;
 
-	int combo_length = 0;
-	for(combo_length = 0; combo_length <= MAX_OBJECTS_IN_WORLD; combo_length++)
+	int objects_in_world = 0;
+	for(objects_in_world = 0; objects_in_world <= MAX_OBJECTS_IN_WORLD; objects_in_world++)
 	{
-		int valid_objects_length = NUM_VALID_OBJECTS;
-		int indices[valid_objects_length];
-		//int final_count = 0;
+		int indices[NUM_VALID_OBJECTS];
 		int y = 0;
 		
-		for(int a = 0; a < combo_length; a++)
+		for(int a = 0; a < objects_in_world; a++)
 			indices[a] = a;
 		
-		uint32_t temp_world[combo_length]; //size k
+		uint32_t temp_world[objects_in_world]; //size k
 		
-		for(y = 0; y < combo_length; y++)
+		for(y = 0; y < objects_in_world; y++)
 			temp_world[y] = valid_objects[indices[y]];
 		
 		bool overflow_check = false;
-		final_count += check_world(temp_world, combo_length);
+		final_count += check_world(temp_world, objects_in_world);
 		if(final_count == 1)
 			overflow_check = true;
 		
@@ -406,9 +392,9 @@ int main()
 		{
 			bool successful_loop = true;
 			
-			for(y = combo_length-1; y >= 0; y--)
+			for(y = objects_in_world-1; y >= 0; y--)
 			{
-				if(indices[y] != y + valid_objects_length - combo_length)
+				if(indices[y] != y + NUM_VALID_OBJECTS - objects_in_world)
 				{
 					successful_loop = false;
 					break;
@@ -420,17 +406,17 @@ int main()
 			
 			indices[y] += 1;
 			
-			for(int z = y+1; z < combo_length; z++)
+			for(int z = y+1; z < objects_in_world; z++)
 				indices[z] = indices[z-1] + 1;
 			
-			uint32_t temp_world_2[combo_length];
+			uint32_t temp_world_2[objects_in_world];
 			
-			for(y = 0; y < combo_length; y++)
+			for(y = 0; y < objects_in_world; y++)
 				temp_world_2[y] = valid_objects[indices[y]];
 			
 			// Overflow Management
 			bool overflow_check_2 = false;
-			final_count += check_world(temp_world_2, combo_length);
+			final_count += check_world(temp_world_2, objects_in_world);
 			if(final_count == 1)
 				overflow_check_2 = true;
 			
@@ -440,7 +426,7 @@ int main()
 				overflows += 1;
 			}
 		}
-		printf("%d -- %d -- %"PRIu32"\n",combo_length,final_count,final_count);
+		printf("%d -- %d -- %"PRIu32"\n",objects_in_world,final_count,final_count);
 		printf("Overflows: %"PRIu32"\n",overflows);
 	}
 	return 0;
