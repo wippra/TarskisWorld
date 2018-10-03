@@ -169,7 +169,7 @@ int check_world(uint32_t w[], int sizeof_w)
 	uint32_t temp_pair[combo_length]; //size k
 
 	for(y = 0; y < combo_length; y++)
-	temp_pair[y] = w[indices[y]];
+		temp_pair[y] = w[indices[y]];
 
 	if(!letter_check(sizeof_w, w))
 		return 0;
@@ -356,9 +356,9 @@ int main()
 		
 		// Ensures only 1 size and shape bit is on for any given valid object
 		if(!((s ^ m) ^ l) ^ (s & m & l))
-		continue;
+			continue;
 		if(!((t ^ c) ^ d) ^ (t & c & d)) 
-		continue;
+			continue;
 		
 		// Any object that has met these requirements is valid, and can be added to the array
 		valid_objects[j] = i;
@@ -384,17 +384,17 @@ int main()
 		int y = 0;
 		
 		for(int a = 0; a < combo_length; a++)
-		indices[a] = a;
+			indices[a] = a;
 		
 		uint32_t temp_world[combo_length]; //size k
 		
 		for(y = 0; y < combo_length; y++)
-		temp_world[y] = valid_objects[indices[y]];
+			temp_world[y] = valid_objects[indices[y]];
 		
 		bool overflow_check = false;
 		final_count += check_world(temp_world, combo_length);
 		if(final_count == 1)
-		overflow_check = true;
+			overflow_check = true;
 		
 		if(overflow_check && final_count == 0)
 		{
@@ -416,23 +416,23 @@ int main()
 			}
 			
 			if(successful_loop)
-			break;
+				break;
 			
 			indices[y] += 1;
 			
 			for(int z = y+1; z < combo_length; z++)
-			indices[z] = indices[z-1] + 1;
+				indices[z] = indices[z-1] + 1;
 			
 			uint32_t temp_world_2[combo_length];
 			
 			for(y = 0; y < combo_length; y++)
-			temp_world_2[y] = valid_objects[indices[y]];
+				temp_world_2[y] = valid_objects[indices[y]];
 			
 			// Overflow Management
 			bool overflow_check_2 = false;
 			final_count += check_world(temp_world_2, combo_length);
 			if(final_count == 1)
-			overflow_check_2 = true;
+				overflow_check_2 = true;
 			
 			if(overflow_check_2 && final_count == 0)
 			{
