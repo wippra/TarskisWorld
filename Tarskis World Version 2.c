@@ -29,6 +29,80 @@ bool letter_check(uint32_t sizeof_w, uint32_t* w)
 	return true;
 }
 
+bool location_check_v2(uint32_t sizeof_w, uint32_t* w)
+{
+    // World representation: Each column is two bits (reversed), each row is each element in the array
+    // Please note the the right side is x == 0, leftside is x == 7
+    // If the point has 0, nothing occupies it
+    // If the point has 1, a center occupies it
+    // If the point has 2, a edge of a large object occupies it
+    uint16_t world[8] = {0,0,0,0,0,0,0,0};
+    
+    for(uint32_t i = 0; i < sizeof_w; i++)
+    {
+	uint8_t c = (w[i] >> 6) & 63;
+	
+	uint8_t cy = c & 7;
+	uint8_t cx = (c >> 2) & 14; // We want this to be multiplied by 2 - really the shift left
+
+	// Y position above and below the center
+	uint8_t by = cy + 1;
+	uint8_t ty = cy - 1;
+	
+	uint8_t large = (w[i] >> 15) & 1;
+
+	// Placement of object
+	if((world[cy] >> cx) & 3) { // If center is occupied by 1 or 2
+	    return false;
+	}
+	world[cy] = world[cy] | (1 << cx); 
+	if(large) { // Bound search
+	    uint16_t e_bit =  (2 << cx);
+	    if(cx != 14) { // Check "left" side
+		if((world[cy] >> cx) & 4) return false; // If space if occupied by a center
+		else world[cy] = world[cy] | (e_bit << 2);
+	    }
+	    if(cx) { // Check "right" side - x >= 2
+		if((world[cy] >> (cx - 2)) & 1) return false; // If space if occupied by a center
+		else world[cy] = world[cy] | (e_bit >> 2);
+	    }
+
+	    if(cy != 7) { // Check bottom
+		if((world[by] >> cx) & 1) return false;
+		else world[by] = world[by] | e_bit;
+	    }
+	    if(cy) { // Check top (y != 0)
+		if((world[ty] >> cx) & 1) return false;
+		else world[ty] = world[ty] | e_bit;
+	    }
+
+	    // Edge cases
+	    if(cx != 14 && cy) { // Check "left" and up side
+		if((world[ty] >> cx) & 4) return false; // If space if occupied by a center
+		else world[ty] = world[ty] | (e_bit << 2);
+	    }
+
+	    if(cx && cy) { // Check "right" and up side - x >= 2
+		if((world[ty] >> (cx - 2)) & 1) return false; // If space if occupied by a center
+		else world[ty] = world[ty] | (e_bit >> 2);
+	    }
+
+	    if(cx != 14 && cy != 7) { // Check "left" and bottom side
+		if((world[by] >> cx) & 4) return false; // If space if occupied by a center
+		else world[by] = world[by] | (e_bit << 2);
+	    }
+
+	    if(cx && cy != 7) { // Check "right" and bottom side - x >= 2
+		if((world[by] >> (cx - 2)) & 1) return false; // If space if occupied by a center
+		else world[by] = world[by] | (e_bit >> 2);
+	    }	    
+	}
+    }
+    
+    return true;
+}
+
+=======
 // Requires: l contains 2 valid objects (18-bit numbers)
 // Returns: true if the locations of the objects do not conflict
 bool location_check(uint32_t l_[])
@@ -73,8 +147,7 @@ void print_world(uint32_t w[], int sizeof_w)
 
 int check_world(uint32_t w[], int sizeof_w)
 {
-	int valid_objects_length = sizeof_w;
-	int indices[valid_objects_length];
+	int indices[sizeof_w];
 	int combo_length = 2;
 	int y = 0;
 
@@ -93,16 +166,16 @@ int check_world(uint32_t w[], int sizeof_w)
 	if(!letter_check(sizeof_w, w))
 	    return 0;
 	
-	if(!(location_check(temp_pair)))
+	if(!(location_check_v2(sizeof_w, w)))
 		return 0;
 	
-	while(true)
+	/*while(true)
 	{
 		bool successful_loop = true;
 
 		for(y = combo_length-1; y >= 0; y--)
 		{
-			if(indices[y] != y + valid_objects_length - combo_length)
+			if(indices[y] != y + sizeof_w - combo_length)
 			{
 				successful_loop = false;
 				break;
@@ -124,7 +197,7 @@ int check_world(uint32_t w[], int sizeof_w)
 
 		if(!(location_check(temp_pair_2)))
 			return 0;
-	}
+	}*/
 
 	return 1;
 }
@@ -191,56 +264,56 @@ void test_cases()
 	// 1) should fail
 	idk[0] = 1 << 6;
 	idk[1] = 1 << 6;
-	assert(!(location_check(idk)));
-	printf("%d\n",location_check(idk));
+	assert(!(location_check_v2(2, idk)));
+	printf("%d\n",location_check_v2(2, idk));
 	
 	// 2) should fail
 	idk[0] = 8 << 6;
 	idk[1] = 8 << 6;
-	assert(!(location_check(idk)));
-	printf("%d\n",location_check(idk));
+	assert(!(location_check_v2(2, idk)));
+	printf("%d\n",location_check_v2(2, idk));
 	
 	// 3) should pass
 	idk[0] = 1 << 15;
 	idk[1] = 33 << 10;
-	assert(location_check(idk));
-	printf("3 -- %d\n",location_check(idk));
+	assert(location_check_v2(2, idk));
+	printf("3 -- %d\n",location_check_v2(2, idk));
 	
 	// 4) should fail
 	idk[0] = 1 << 15;
 	idk[1] = 65 << 9;
-	assert(!(location_check(idk)));
-	printf("4 -- %d\n",location_check(idk));
+	assert(!(location_check_v2(2, idk)));
+	printf("4 -- %d\n",location_check_v2(2, idk));
 	
 	// 5) should fail
 	idk[0] = 1 << 15;
 	idk[1] = ((1<<7)|1) << 9;
-	assert(!(location_check(idk)));
-	printf("%d\n",location_check(idk));
+	assert(!(location_check_v2(2, idk)));
+	printf("%d\n",location_check_v2(2, idk));
 	
 	// 6) should pass
 	idk[0] = 1 << 15;
 	idk[1] = ((1<<6)|1) << 10;
-	assert(location_check(idk));
-	printf("%d\n",location_check(idk));
+	assert(location_check_v2(2, idk));
+	printf("%d\n",location_check_v2(2, idk));
 	
 	/*
 	// 512 & 514 should pass
 	idk[0] = 512;
 	idk[1] = 514;
-	assert(location_check(idk));
-	printf("%d\n",location_check(idk));
+	assert(location_check_v2(2, idk));
+	printf("%d\n",location_check_v2(2, idk));
 	
 	
 	// 1024 & 528 should pass
 	idk[0] = 1024;
 	idk[1] = 528;
-	assert(location_check(idk));
-	printf("%d\n",location_check(idk));
+	assert(location_check_v2(2, idk));
+	printf("%d\n",location_check_v2(2, idk));
 	*/
 	
 	assert(0);
-	//location_check(idk));
+	//location_check_v2(2, idk));
 }
 
 void valid_objects_tests(uint32_t v[])
@@ -279,12 +352,13 @@ int main()
 {
 	//test_cases();
 
-	int s, m, l, t, c, d, i, j; 
+	int s, m, l, t, c, d, i, j;
+	int size;
 	
 	// Generation of valid objects
 	uint32_t valid_objects[NUM_VALID_OBJECTS];
 
-	i = 0;
+	//i = 0;
 	j = 0;
 
 	// Goes through all potential objects (all 18 digit numbers)
@@ -293,13 +367,13 @@ int main()
 		// Isolates the relevant bit to each possible size or shape
 		//  Sizes: {Small, Medium, Large}
 		//  Shapes: {Tetrahedron, Cube, Dodecahedron}
-		s = (i & (1 << 17)) >> 17;
-		m = (i & (1 << 16)) >> 16;
-		l = (i & (1 << 15)) >> 15;
-		t = (i & (1 << 14)) >> 14;
-		c = (i & (1 << 13)) >> 13;
-		d = (i & (1 << 12)) >> 12;
-		
+		s = (i >> 17) & 1;
+	  m = (i >> 16) & 1;
+	  l = (i >> 15) & 1;
+		t = (i >> 14) & 1;
+	  c = (i >> 13) & 1;
+	  d = (i >> 12) & 1;
+
 		if(l) continue;
 		
 		// Ensures only 1 size and shape bit is on for any given valid object
