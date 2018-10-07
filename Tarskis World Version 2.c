@@ -7,6 +7,12 @@
 #include <stdint.h>
 #include "bn.h"
 
+// bn implements Arbitrary-precision arithmetic
+// Will manage the large numbers (final_count, nCr) used 
+//   anywhere in the code
+// Source:
+// 	https://github.com/kokke/tiny-bignum-c
+
 #define NUM_VALID_OBJECTS 24576
 #define MAX_OBJECTS_IN_WORLD 12
 
