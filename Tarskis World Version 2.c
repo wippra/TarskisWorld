@@ -5,6 +5,13 @@
 #include <stdlib.h>
 #include <inttypes.h>
 #include <stdint.h>
+#include "bn.h"
+
+// bn implements Arbitrary-precision arithmetic
+// Will manage the large numbers (final_count, nCr) used 
+//   anywhere in the code
+// Source:
+// 	https://github.com/kokke/tiny-bignum-c
 
 #define NUM_VALID_OBJECTS 24576
 #define MAX_OBJECTS_IN_WORLD 12
@@ -151,6 +158,16 @@ void print_world(uint32_t w[], int sizeof_w)
 	for(ii = 0; ii < sizeof_w; ii++)
 	printf("%d ",w[ii]);
 	printf("\n");
+}
+
+// Requires: *a : a reference to a non-null big num
+// Modifies: nothing
+// Effects: Prints a 'bignum' (IN HEX)
+void print_bignum(struct bn* a)
+{
+	char buf[4096];
+	bignum_to_string(a, buf, sizeof(buf));
+	printf("bignum (hex) = %s\n", buf);
 }
 
 int check_world(uint32_t w[], int sizeof_w)
@@ -360,11 +377,10 @@ int main()
 	printf("*\n");
 	printf("*\n");
 
-	uint32_t final_count = 0;
-	uint32_t overflows = 0;
+	struct bn final_count;
+	bignum_from_int(&final_count, 0);
 
-	int objects_in_world = 0;
-	for(objects_in_world = 0; objects_in_world <= MAX_OBJECTS_IN_WORLD; objects_in_world++)
+	for(int objects_in_world = 0; objects_in_world <= MAX_OBJECTS_IN_WORLD; objects_in_world++)
 	{
 		int indices[NUM_VALID_OBJECTS];
 		int y = 0;
@@ -379,15 +395,9 @@ int main()
 			temp_world[y] = valid_objects[indices[y]];
 		
 		bool overflow_check = false;
-		final_count += check_world(temp_world, objects_in_world);
-		if(final_count == 1) // Since we keep track of all the possible worlds count, we need to check if we overflow every time we increment
-			overflow_check = true;
 		
-		if(overflow_check && final_count == 0)
-		{
-			overflow_check = false;
-			overflows += 1;
-		}
+		if(check_world(temp_world, objects_in_world))
+			bignum_inc(&final_count);
 		
 		while(true)
 		{
@@ -423,20 +433,11 @@ int main()
 			for(y = 0; y < objects_in_world; y++)
 				temp_world_2[y] = valid_objects[indices[y]];
 			
-			// Overflow Management
-			bool overflow_check_2 = false;
-			final_count += check_world(temp_world_2, objects_in_world);
-			if(final_count == 1)
-				overflow_check_2 = true;
-			
-			if(overflow_check_2 && final_count == 0)
-			{
-				overflow_check_2 = false;
-				overflows += 1;
-			}
+			if(check_world(temp_world_2, objects_in_world))
+				bignum_inc(&final_count);
 		}
-		printf("%d -- %d -- %"PRIu32"\n",objects_in_world,final_count,final_count);
-		printf("Overflows: %"PRIu32"\n",overflows);
+		printf("Objects in world: %d \n",objects_in_world);
+		print_bignum(&final_count);
 	}
 	return 0;
 }
