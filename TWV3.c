@@ -300,7 +300,6 @@ void test_cases()
 	fours_test[3] = 135744;
 	assert(location_check_v2(4, fours_test));
 }
-
 void valid_objects_tests(uint32_t v[])
 {
 	int k;
@@ -368,7 +367,6 @@ int main(int argc, char **argv)
 	// Generation of valid objects
 	uint32_t valid_objects[NUM_VALID_OBJECTS];
 
-	//i = 0;
 	j = 0;
 
 	// Goes through all potential objects (all 18 digit numbers)
@@ -403,7 +401,7 @@ int main(int argc, char **argv)
 	printf("*\n");
 	printf("*\n");
 	printf("*\n");
-
+	
 	struct bn final_count;
 	bignum_from_int(&final_count, 24577);
 	
@@ -411,7 +409,7 @@ int main(int argc, char **argv)
 	bignum_from_int(&result, 0);
 
 	//for(int objects_in_world = 2; objects_in_world <= MAX_OBJECTS_IN_WORLD; objects_in_world++)
-	for(int objects_in_world = 2; objects_in_world <= 2; objects_in_world++)
+	for(int objects_in_world = 2; objects_in_world <= 3; objects_in_world++)
 	{
 		// World that needs to be checked
 		uint32_t temp_world[objects_in_world];
@@ -430,10 +428,11 @@ int main(int argc, char **argv)
 			//  by the for loop above so that it can be parallelized
 			temp_world[0] = valid_objects[i];
 			
-			// Initialize bignum result as NUM_VALID_OBJECTS-i-1 choose objects_in_world
+			// Initialize bignum result as NUM_VALID_OBJECTS-i-1 choose objects_in_world-1
 			// This variable represents how many combinations exist for a given first object in a world
-			nCr(NUM_VALID_OBJECTS-i-1, objects_in_world, &result);
-		
+			nCr(NUM_VALID_OBJECTS-i, objects_in_world-1, &result);
+			bignum_dec(&result);
+			
 			// Iterate over result
 			for(; bignum_is_zero(&result) == 0; bignum_dec(&result))
 			{
@@ -444,8 +443,6 @@ int main(int argc, char **argv)
 				// Check the validity of the world we just created
 				if(check_world(temp_world, objects_in_world))
 					bignum_inc(&final_count);
-				
-				print_world(temp_world, objects_in_world);
 				
 				// Increment the last element
 				indices[inc]++;
@@ -461,8 +458,8 @@ int main(int argc, char **argv)
 							indices[k] = indices[k-1]+1;
 					}
 				}
+				//if(temp_world[1] == valid_objects[NUM_VALID_OBJECTS-1]-(objects_in_world-1)) break;
 				
-				if(temp_world[1] == valid_objects[NUM_VALID_OBJECTS-1]-(objects_in_world-1)) break;
 			}
 		}
 		printf("Objects in world: %d \n",objects_in_world);
